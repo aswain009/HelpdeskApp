@@ -1,0 +1,36 @@
+@page
+@model Helpdesk.Api.Pages.Tickets.CreateModel
+
+<h1>Create Ticket</h1>
+
+<form method="post">
+    <div class="mb-3">
+        <label class="form-label">Title</label>
+        <input asp-for="Ticket.Title" class="form-control" />
+        <span asp-validation-for="Ticket.Title" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Description</label>
+        <textarea asp-for="Ticket.Description" class="form-control"></textarea>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Status</label>
+        <select asp-for="Ticket.Status" class="form-select">
+            <option value="Open">Open</option>
+            <option value="InProgress">In Progress</option>
+            <option value="Closed">Closed</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Assign to</label>
+        <select asp-for="Ticket.AssignedUserId" class="form-select">
+            <option value="">Unassigned</option>
+            @foreach (var user in Model.Users)
+            {
+                <option value="@user.Id">@user.Name</option>
+            }
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Create</button>
+    <a asp-page="Index" class="btn btn-secondary">Cancel</a>
+</form>

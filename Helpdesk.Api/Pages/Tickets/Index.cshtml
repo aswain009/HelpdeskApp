@@ -1,0 +1,59 @@
+@page
+@model Helpdesk.Api.Pages.Tickets.IndexModel
+
+<h1>Tickets</h1>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-auto">
+        <select class="form-select" asp-for="Status">
+            <option value="">All Statuses</option>
+            <option value="Open">Open</option>
+            <option value="InProgress">In Progress</option>
+            <option value="Closed">Closed</option>
+        </select>
+    </div>
+    <div class="col-auto">
+        <select class="form-select" asp-for="AssignedUserId">
+            <option value="">Unassigned/All</option>
+            @foreach (var user in Model.Users)
+            {
+                <option value="@user.Id">@user.Name</option>
+            }
+        </select>
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-primary" type="submit">Filter</button>
+        <a class="btn btn-secondary" asp-page="Create">New Ticket</a>
+    </div>
+    <div class="col-12 mt-2 text-muted">@Model.Tickets.Count ticket(s)</div>
+    <div class="col-12">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>Id</th>
+                <th>Title</th>
+                <th>Status</th>
+                <th>Assigned</th>
+                <th>Updated</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var ticket in Model.Tickets)
+            {
+                <tr>
+                    <td>@ticket.Id</td>
+                    <td>@ticket.Title</td>
+                    <td>@ticket.Status</td>
+                    <td>@ticket.AssignedUser?.Name</td>
+                    <td>@ticket.UpdatedAt.ToLocalTime()</td>
+                    <td>
+                        <a asp-page="Details" asp-route-id="@ticket.Id">View</a> |
+                        <a asp-page="Edit" asp-route-id="@ticket.Id">Edit</a>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</form>
