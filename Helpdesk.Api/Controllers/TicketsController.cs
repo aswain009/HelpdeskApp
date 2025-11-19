@@ -11,16 +11,16 @@ namespace Helpdesk.Api.Controllers;
 public class TicketsController(HelpdeskDbContext db) : ControllerBase
 {
     public record TicketCreateRequest(
-        [property: Required, MaxLength(200)] string Title,
-        [property: MaxLength(2000)] string? Description,
+        [param: Required, MaxLength(200)] string Title,
+        [param: MaxLength(2000)] string? Description,
         TicketStatus Status,
         int? AssignedUserId
     );
 
     public record TicketUpdateRequest(
-        [property: Required] int Id,
-        [property: Required, MaxLength(200)] string Title,
-        [property: MaxLength(2000)] string? Description,
+        [param: Required] int Id,
+        [param: Required, MaxLength(200)] string Title,
+        [param: MaxLength(2000)] string? Description,
         TicketStatus Status,
         int? AssignedUserId
     ); 
