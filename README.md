@@ -87,14 +87,40 @@ By default the app listens on:
 * `GET /api/tickets/{id}`
 * `POST /api/tickets`
 
-  * Body: `Ticket` (Id ignored)
+  * Body: TicketCreateRequest (AssignedUser navigation is NOT accepted)
+  * Example:
+    ```json
+    {
+      "title": "Printer is jammed",
+      "description": "3rd floor, near kitchen",
+      "status": 0,
+      "assignedUserId": 12
+    }
+    ```
+  * Notes:
+    - Do not include `assignedUser` object in the request. Provide only `assignedUserId` of an existing user or omit/null to leave unassigned.
+
 * `PUT /api/tickets/{id}`
 
-  * Body: `Ticket` (Id must match `{id}`)
+  * Body: TicketUpdateRequest (Id must match `{id}`; AssignedUser navigation is NOT accepted)
+  * Example:
+    ```json
+    {
+      "id": 101,
+      "title": "Printer fixed",
+      "description": "Replaced toner",
+      "status": 1,
+      "assignedUserId": null
+    }
+    ```
 * `DELETE /api/tickets/{id}`
 * `POST /api/tickets/{id}/assign`
 
   * Body: `{ assignedUserId: number | null }`
+
+### Important: AssignedUser is not part of API requests
+
+The `Ticket` model has a navigation property `AssignedUser` for responses and internal use, but API requests must not include it. To set or change the assignee, supply `assignedUserId` (an existing user id) or use the dedicated `POST /api/tickets/{id}/assign` endpoint. If `assignedUser` is provided in a request body, the API will return `400 Bad Request`.
 
 ---
 

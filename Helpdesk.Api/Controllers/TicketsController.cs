@@ -2,6 +2,7 @@ using Helpdesk.Api.Data;
 using Helpdesk.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace Helpdesk.Api.Controllers;
 
@@ -9,6 +10,22 @@ namespace Helpdesk.Api.Controllers;
 [Route("api/[controller]")]
 public class TicketsController(HelpdeskDbContext db) : ControllerBase
 {
+    public record TicketCreateRequest(
+        [property: Required, MaxLength(200)] string Title,
+        [property: MaxLength(2000)] string? Description,
+        TicketStatus Status,
+        int? AssignedUserId
+    );
+
+    public record TicketUpdateRequest(
+        [property: Required] int Id,
+        [property: Required, MaxLength(200)] string Title,
+        [property: MaxLength(2000)] string? Description,
+        TicketStatus Status,
+        int? AssignedUserId
+    ); 
+    
+    
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Ticket>>> List([FromQuery] TicketStatus? status, [FromQuery] int? assignedUserId)
     {
@@ -34,23 +51,49 @@ public class TicketsController(HelpdeskDbContext db) : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<Ticket>> Create(Ticket ticket)
+    public async Task<ActionResult<Ticket>> Create(TicketCreateRequest req)
     {
         if (!ModelState.IsValid) return ValidationProblem(ModelState);
-        if (ticket.Id != 0) ticket.Id = 0;
-        db.Tickets.Add(ticket);
+        
+        if (req.AssignedUserId is not null &&
+            !await db.Users.AnyAsync(user => user.Id == req.AssignedUserId))
+        {
+            return BadRequest("Assigned user does not exist");
+        }
+        
+        var newTicket = new Ticket
+        {
+            Title = req.Title,
+            Description = req.Description,
+            Status = req.Status,
+            AssignedUserId = req.AssignedUserId
+        };
+
+        db.Tickets.Add(newTicket);
         await db.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetById), new { id = ticket.Id }, ticket);
+        return CreatedAtAction(nameof(GetById), new { id = newTicket.Id }, newTicket);
     }
 
     [HttpPut("{id:int}")]
-    public async Task<ActionResult<Ticket>> Update(int id, Ticket ticket)
+    public async Task<ActionResult<Ticket>> Update(int id, TicketUpdateRequest newTicket)
     {
-        if (id != ticket.Id) return BadRequest("ID mismatch");
-        if (!await db.Tickets.AnyAsync(t => t.Id == id)) return NotFound();
-        db.Entry(ticket).State = EntityState.Modified;
+        if (id != newTicket.Id) return BadRequest("ID mismatch");
+        var existing = await db.Tickets.FindAsync(id);
+        if (existing is null) return NotFound();
+        
+        if (newTicket.AssignedUserId is not null &&
+            !await db.Users.AnyAsync(user => user.Id == newTicket.AssignedUserId))
+        {
+            return BadRequest("Assigned user does not exist");
+        }
+        
+        existing.Title = newTicket.Title;
+        existing.Description = newTicket.Description;
+        existing.Status = newTicket.Status;
+        existing.AssignedUserId = newTicket.AssignedUserId;
+
         await db.SaveChangesAsync();
-        return Ok(ticket);
+        return Ok(existing);
     }
 
     [HttpDelete("{id:int}")]
