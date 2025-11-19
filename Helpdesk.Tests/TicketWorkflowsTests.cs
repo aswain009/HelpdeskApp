@@ -19,7 +19,7 @@ public class TicketWorkflowsTests : IClassFixture<WebApplicationFactory<Program>
     [Fact]
     public async Task Create_Ticket_Should_Succeed_And_Default_To_Open()
     {
-        var toCreate = new Ticket { Title = "API create test", Description = "desc" };
+        var toCreate = new Ticket { Title = "API create test", Description = "desc", AssignedUser = null};
         var resp = await _client.PostAsJsonAsync("/api/tickets", toCreate);
         resp.EnsureSuccessStatusCode();
         var created = await resp.Content.ReadFromJsonAsync<Ticket>();
@@ -57,8 +57,8 @@ public class TicketWorkflowsTests : IClassFixture<WebApplicationFactory<Program>
         var userId = users.First().Id;
 
         // create ticket
-        var created = await (await _client.PostAsJsonAsync("/api/tickets", new Ticket { Title = "Assign me" })).Content
-            .ReadFromJsonAsync<Ticket>();
+        var created = await (await _client.PostAsJsonAsync("/api/tickets", new Ticket { Title = "Assign me" }))
+            .Content.ReadFromJsonAsync<Ticket>();
 
         // assign to valid user
         var assignOk = await _client.PostAsJsonAsync($"/api/tickets/{created!.Id}/assign", new { AssignedUserId = (int?)userId });
@@ -80,8 +80,8 @@ public class TicketWorkflowsTests : IClassFixture<WebApplicationFactory<Program>
     [Fact]
     public async Task Change_Status_In_Progress_Should_Filter_Correctly()
     {
-        var created = await (await _client.PostAsJsonAsync("/api/tickets", new Ticket { Title = "Change status" })).Content
-            .ReadFromJsonAsync<Ticket>();
+        var created = await (await _client.PostAsJsonAsync("/api/tickets", new Ticket { Title = "Change status" }))
+            .Content.ReadFromJsonAsync<Ticket>();
         created!.Status = TicketStatus.InProgress;
         var updateResp = await _client.PutAsJsonAsync($"/api/tickets/{created.Id}", created);
         updateResp.EnsureSuccessStatusCode();
